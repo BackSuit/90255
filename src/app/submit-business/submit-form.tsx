@@ -16,6 +16,7 @@ import {
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { createBusiness } from "@/actions/businesses";
 import { CATEGORIES } from "@/lib/categories";
+import { ImageUpload, MultiImageUpload } from "@/components/shared/image-upload";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
@@ -23,6 +24,10 @@ export function SubmitBusinessForm({ isAuthenticated }: { isAuthenticated: boole
   const [error, setError] = useState<Record<string, string[]>>({});
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+
+  const [coverImage, setCoverImage] = useState("");
+  const [logo, setLogo] = useState("");
+  const [gallery, setGallery] = useState<string[]>([]);
 
   // Show submitted success message
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
@@ -192,32 +197,32 @@ export function SubmitBusinessForm({ isAuthenticated }: { isAuthenticated: boole
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="coverImage">Cover Image URL</Label>
-            <Input
-              id="coverImage"
-              name="coverImage"
-              type="url"
-              placeholder="https://example.com/image.jpg"
+            <Label>Cover Image</Label>
+            <input type="hidden" name="coverImage" value={coverImage} />
+            <ImageUpload
+              value={coverImage}
+              onChange={setCoverImage}
+              folder="businesses"
             />
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="logo">Logo URL</Label>
-            <Input
-              id="logo"
-              name="logo"
-              type="url"
-              placeholder="https://example.com/logo.jpg"
+            <Label>Logo</Label>
+            <input type="hidden" name="logo" value={logo} />
+            <ImageUpload
+              value={logo}
+              onChange={setLogo}
+              folder="businesses"
             />
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="gallery">Gallery URLs (comma-separated)</Label>
-            <Textarea
-              id="gallery"
-              name="gallery"
-              rows={3}
-              placeholder="https://example.com/1.jpg, https://example.com/2.jpg"
+            <Label>Gallery</Label>
+            <input type="hidden" name="gallery" value={gallery.join(",")} />
+            <MultiImageUpload
+              value={gallery}
+              onChange={setGallery}
+              folder="businesses"
             />
           </div>
         </div>

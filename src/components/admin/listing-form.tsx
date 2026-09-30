@@ -16,6 +16,7 @@ import {
 import { PROPERTY_TYPES, LISTING_STATUS } from "@/lib/constants";
 import { createListing, updateListing } from "@/actions/real-estate";
 import type { RealEstateListing } from "@/lib/db/schema";
+import { ImageUpload, MultiImageUpload } from "@/components/shared/image-upload";
 
 interface AdminListingFormProps {
   listing?: RealEstateListing;
@@ -26,6 +27,9 @@ export function AdminListingForm({ listing }: AdminListingFormProps) {
   const [saved, setSaved] = useState(false);
   const router = useRouter();
   const isNew = !listing;
+  
+  const [mainImage, setMainImage] = useState(listing?.mainImage || "");
+  const [gallery, setGallery] = useState<string[]>(listing?.gallery || []);
 
   const handleSubmit = (formData: FormData) => {
     setSaved(false);
@@ -236,24 +240,22 @@ export function AdminListingForm({ listing }: AdminListingFormProps) {
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="mainImage">Main Image URL</Label>
-            <Input
-              id="mainImage"
-              name="mainImage"
-              type="url"
-              defaultValue={listing?.mainImage || ""}
-              placeholder="https://example.com/image.jpg"
+            <Label>Main Image</Label>
+            <input type="hidden" name="mainImage" value={mainImage} />
+            <ImageUpload
+              value={mainImage}
+              onChange={setMainImage}
+              folder="real-estate"
             />
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="gallery">Gallery URLs (comma-separated)</Label>
-            <Textarea
-              id="gallery"
-              name="gallery"
-              rows={3}
-              defaultValue={listing?.gallery?.join(", ") || ""}
-              placeholder="https://example.com/1.jpg, https://example.com/2.jpg"
+            <Label>Gallery</Label>
+            <input type="hidden" name="gallery" value={gallery.join(",")} />
+            <MultiImageUpload
+              value={gallery}
+              onChange={setGallery}
+              folder="real-estate"
             />
           </div>
         </div>

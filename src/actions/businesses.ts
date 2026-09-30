@@ -8,6 +8,7 @@ import { slugify } from "@/lib/utils";
 import { eq, ilike, or, and, desc, sql, count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { deleteImage } from "@/lib/blob";
 
 export async function createBusiness(formData: FormData) {
   const user = await requireAuth();
@@ -111,6 +112,24 @@ export async function toggleFeatured(id: string) {
 
 export async function deleteBusiness(id: string) {
   await requireAdmin();
+
+  const business = await db.query.businesses.findFirst({
+    where: eq(businesses.id, id),
+  });
+
+  if (business) {
+    if (business.coverImage?.includes("blob.vercel-storage.com")) {
+      await deleteImage(business.coverImage);
+    }
+    if (business.logo?.includes("blob.vercel-storage.com")) {
+      await deleteImage(business.logo);
+    }
+    for (const url of business.gallery || []) {
+      if (url.includes("blob.vercel-storage.com")) {
+        await deleteImage(url);
+      }
+    }
+  }
 
   await db.delete(businesses).where(eq(businesses.id, id));
 

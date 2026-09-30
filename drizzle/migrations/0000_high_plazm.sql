@@ -19,6 +19,7 @@ CREATE TABLE "businesses" (
 	"city" text DEFAULT 'Huntington Park' NOT NULL,
 	"state" text DEFAULT 'CA' NOT NULL,
 	"zip" text DEFAULT '90255' NOT NULL,
+	"google_place_id" text,
 	"phone" text,
 	"website" text,
 	"hours" jsonb,
@@ -34,7 +35,8 @@ CREATE TABLE "businesses" (
 	"submitted_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "businesses_slug_unique" UNIQUE("slug")
+	CONSTRAINT "businesses_slug_unique" UNIQUE("slug"),
+	CONSTRAINT "businesses_google_place_id_unique" UNIQUE("google_place_id")
 );
 --> statement-breakpoint
 CREATE TABLE "profiles" (

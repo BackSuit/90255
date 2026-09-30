@@ -16,6 +16,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { BUSINESS_STATUS } from "@/lib/constants";
 import { updateBusiness } from "@/actions/businesses";
 import type { Business } from "@/lib/db/schema";
+import { ImageUpload, MultiImageUpload } from "@/components/shared/image-upload";
 
 interface AdminBusinessFormProps {
   business: Business;
@@ -24,6 +25,10 @@ interface AdminBusinessFormProps {
 export function AdminBusinessForm({ business }: AdminBusinessFormProps) {
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+  
+  const [coverImage, setCoverImage] = useState(business.coverImage || "");
+  const [logo, setLogo] = useState(business.logo || "");
+  const [gallery, setGallery] = useState<string[]>(business.gallery || []);
 
   const handleSubmit = (formData: FormData) => {
     setSaved(false);
@@ -163,35 +168,32 @@ export function AdminBusinessForm({ business }: AdminBusinessFormProps) {
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="coverImage">Cover Image URL</Label>
-            <Input
-              id="coverImage"
-              name="coverImage"
-              type="url"
-              defaultValue={business.coverImage || ""}
-              placeholder="https://example.com/image.jpg"
+            <Label>Cover Image</Label>
+            <input type="hidden" name="coverImage" value={coverImage} />
+            <ImageUpload
+              value={coverImage}
+              onChange={setCoverImage}
+              folder="businesses"
             />
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="logo">Logo URL</Label>
-            <Input
-              id="logo"
-              name="logo"
-              type="url"
-              defaultValue={business.logo || ""}
-              placeholder="https://example.com/logo.jpg"
+            <Label>Logo</Label>
+            <input type="hidden" name="logo" value={logo} />
+            <ImageUpload
+              value={logo}
+              onChange={setLogo}
+              folder="businesses"
             />
           </div>
 
           <div className="md:col-span-2">
-            <Label htmlFor="gallery">Gallery URLs (comma-separated)</Label>
-            <Textarea
-              id="gallery"
-              name="gallery"
-              rows={3}
-              defaultValue={business.gallery?.join(", ") || ""}
-              placeholder="https://example.com/1.jpg, https://example.com/2.jpg"
+            <Label>Gallery</Label>
+            <input type="hidden" name="gallery" value={gallery.join(",")} />
+            <MultiImageUpload
+              value={gallery}
+              onChange={setGallery}
+              folder="businesses"
             />
           </div>
         </div>

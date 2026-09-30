@@ -17,16 +17,20 @@ if not DATABASE_URL:
 
 MAPS_API_KEY = "AIzaSyCCZwVrSEPX1Sqr2hlEt9jB5Qtht6pZWEo"
 
+BLOB_TOKEN = os.environ.get('BLOB_READ_WRITE_TOKEN')
+if not BLOB_TOKEN:
+    print("Warning: BLOB_READ_WRITE_TOKEN not found in environment (.env.local). Images will not be uploaded to Vercel Blob.")
+
 SEARCH_QUERIES = [
-    "restaurant in 90255",
-    "store in 90255",
-    "service in 90255",
-    "health in 90255",
-    "automotive in 90255",
-    "beauty in 90255",
-    "education in 90255",
-    "entertainment in 90255",
-    "real estate in 90255",
+    # "restaurant in 90255",
+    # "store in 90255",
+    # "service in 90255",
+    # "health in 90255",
+    # "automotive in 90255",
+    # "beauty in 90255",
+    # "education in 90255",
+    # "entertainment in 90255",
+    # "real estate in 90255",
     "grocery in 90255"
 ]
 
@@ -61,6 +65,28 @@ def extract_address_components(components, formatted_address):
         
     return address, city, state, zip_code
 
+def upload_photo_to_blob(photo_name, blob_path):
+    if not BLOB_TOKEN:
+        return None
+    url = f"https://places.googleapis.com/v1/{photo_name}/media?maxHeightPx=800&maxWidthPx=800&key={MAPS_API_KEY}"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            vercel_url = f"https://blob.vercel-storage.com/{blob_path}"
+            headers = {
+                "Authorization": f"Bearer {BLOB_TOKEN}",
+                "x-add-random-suffix": "false",
+                "Content-Type": "image/jpeg"
+            }
+            blob_res = requests.post(vercel_url, headers=headers, data=response.content)
+            if blob_res.status_code == 200:
+                return blob_res.json().get("url")
+            else:
+                print(f"Failed to upload to blob: {blob_res.text}")
+    except Exception as e:
+        print(f"Failed to fetch/upload photo {photo_name}: {e}")
+    return None
+
 def main():
     print(f"Connecting to database: {DATABASE_URL}")
     try:
@@ -80,7 +106,7 @@ def main():
             url = "https://places.googleapis.com/v1/places:searchText"
             headers = {
                 "X-Goog-Api-Key": MAPS_API_KEY,
-                "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.addressComponents,places.nationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.location,places.primaryType,nextPageToken",
+                "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.addressComponents,places.nationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.location,places.primaryType,places.photos,nextPageToken",
                 "Content-Type": "application/json"
             }
             payload = {
@@ -112,17 +138,21 @@ def main():
                     continue
                 processed_place_ids.add(place_id)
                 
-                cursor.execute("SELECT id FROM businesses WHERE google_place_id = %s", (place_id,))
-                if cursor.fetchone():
-                    print(f"  Already exists in database (by place_id). Skipping.")
-                    continue
+                cursor.execute("SELECT id, cover_image FROM businesses WHERE google_place_id = %s", (place_id,))
+                existing = cursor.fetchone()
                 
-                cursor.execute("SELECT id FROM businesses WHERE name = %s", (name,))
-                if cursor.fetchone():
-                    print(f"  '{name}' already exists in database (by name). Skipping.")
-                    continue
+                if not existing:
+                    cursor.execute("SELECT id, cover_image FROM businesses WHERE name = %s", (name,))
+                    existing = cursor.fetchone()
                 
-                print(f"Processing '{name}'...")
+                if existing:
+                    if existing[1]:
+                        print(f"  '{name}' already exists in database with images. Skipping.")
+                        continue
+                    else:
+                        print(f"  '{name}' exists but missing images. Updating...")
+                else:
+                    print(f"Processing '{name}'...")
                 
                 formatted_address = place.get('formattedAddress', '')
                 addr_components = place.get('addressComponents', [])
@@ -160,11 +190,43 @@ def main():
                         else:
                             break
                             
-                    cursor.execute("""
-                        INSERT INTO businesses (name, slug, category, address, city, state, zip, phone, website, hours, latitude, longitude, google_place_id, status)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'published')
-                    """, (name, slug, category, address, city, state, zip_code, phone, website, Json(hours_dict) if hours_dict else None, lat, lng, place_id))
-                    print(f"  Inserted new record.")
+                    # Process Photos
+                    photos = place.get('photos', [])
+                    cover_image_path = None
+                    gallery_paths = []
+                    
+                    if photos:
+                        print(f"  Uploading {min(len(photos), 5)} photos to Vercel Blob...")
+                        # Folder logic
+                        folder = "real-estate" if "real estate" in query.lower() else "businesses"
+                        
+                        # Cover photo
+                        cover_photo = photos[0]
+                        cover_blob_path = f"{folder}/{slug}/cover.jpg"
+                        uploaded_cover = upload_photo_to_blob(cover_photo['name'], cover_blob_path)
+                        if uploaded_cover:
+                            cover_image_path = uploaded_cover
+                            
+                        # Gallery photos (next 4)
+                        for i, photo in enumerate(photos[1:5]):
+                            gallery_blob_path = f"{folder}/{slug}/gallery_{i+1}.jpg"
+                            uploaded_gallery = upload_photo_to_blob(photo['name'], gallery_blob_path)
+                            if uploaded_gallery:
+                                gallery_paths.append(uploaded_gallery)
+                                
+                    if existing:
+                        cursor.execute("""
+                            UPDATE businesses 
+                            SET cover_image = %s, gallery = %s, category = %s
+                            WHERE id = %s
+                        """, (cover_image_path, gallery_paths, category, existing[0]))
+                        print(f"  Updated existing record '{name}' with images.")
+                    else:
+                        cursor.execute("""
+                            INSERT INTO businesses (name, slug, category, address, city, state, zip, phone, website, hours, latitude, longitude, google_place_id, cover_image, gallery, status)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'published')
+                        """, (name, slug, category, address, city, state, zip_code, phone, website, Json(hours_dict) if hours_dict else None, lat, lng, place_id, cover_image_path, gallery_paths))
+                        print(f"  Inserted new record '{name}'.")
                     
                     conn.commit()
                 except Exception as e:

@@ -7,6 +7,7 @@ import { realEstateSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
 import { eq, desc, and, count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { deleteImage } from "@/lib/blob";
 
 export async function createListing(formData: FormData) {
   const { user } = await requireAdmin();
@@ -84,6 +85,22 @@ export async function updateListing(id: string, formData: FormData) {
 
 export async function deleteListing(id: string) {
   await requireAdmin();
+  
+  const listing = await db.query.realEstateListings.findFirst({
+    where: eq(realEstateListings.id, id),
+  });
+
+  if (listing) {
+    if (listing.mainImage?.includes("blob.vercel-storage.com")) {
+      await deleteImage(listing.mainImage);
+    }
+    for (const url of listing.gallery || []) {
+      if (url.includes("blob.vercel-storage.com")) {
+        await deleteImage(url);
+      }
+    }
+  }
+  
   await db.delete(realEstateListings).where(eq(realEstateListings.id, id));
   revalidatePath("/real-estate");
   revalidatePath("/admin/real-estate");

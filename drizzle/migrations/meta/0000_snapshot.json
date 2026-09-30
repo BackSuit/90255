@@ -1,5 +1,5 @@
 {
-  "id": "e77b8dac-dcfa-4143-93a7-3471bac4f8a7",
+  "id": "3bd30661-7ead-44b4-a395-12bab5f5fbf0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -158,6 +158,12 @@
           "notNull": true,
           "default": "'90255'"
         },
+        "google_place_id": {
+          "name": "google_place_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "phone": {
           "name": "phone",
           "type": "text",
@@ -291,6 +297,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "slug"
+          ]
+        },
+        "businesses_google_place_id_unique": {
+          "name": "businesses_google_place_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "google_place_id"
           ]
         }
       },
