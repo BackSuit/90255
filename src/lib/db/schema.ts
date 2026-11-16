@@ -42,6 +42,7 @@ export const businesses = pgTable("businesses", {
   zip: text("zip").notNull().default("90255"),
   googlePlaceId: text("google_place_id").unique(),
   phone: text("phone"),
+  email: text("email"),
   website: text("website"),
   hours: jsonb("hours").$type<Record<string, string>>(),
   latitude: numeric("latitude", { precision: 10, scale: 7 }),

@@ -18,6 +18,7 @@ export const businessSubmissionSchema = z.object({
   state: z.string().max(2).default("CA"),
   zip: z.string().max(10).default("90255"),
   phone: z.string().max(20).optional(),
+  email: z.string().email("Must be a valid email").max(200).optional().or(z.literal("")),
   website: z.string().url("Must be a valid URL").max(500).optional().or(z.literal("")),
   hours: z.record(z.string(), z.string()).optional(),
   latitude: z.coerce.number().min(-90).max(90).optional(),

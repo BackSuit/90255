@@ -3,16 +3,24 @@ import Image from "next/image";
 import { MapPin, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getCategoryBySlug } from "@/lib/categories";
+import { getBusinessCoverImage, isJxlImage } from "@/lib/category-images";
 import { formatPhoneNumber, truncate } from "@/lib/utils";
 import type { Business } from "@/lib/db/schema";
 
 interface BusinessCardProps {
   business: Business;
+  priority?: boolean;
+  loading?: "eager" | "lazy";
 }
 
-export function BusinessCard({ business }: BusinessCardProps) {
+export function BusinessCard({
+  business,
+  priority = false,
+  loading = "eager",
+}: BusinessCardProps) {
   const category = getCategoryBySlug(business.category);
   const CategoryIcon = category?.icon;
+  const coverImage = getBusinessCoverImage(business);
 
   return (
     <Link
@@ -21,13 +29,16 @@ export function BusinessCard({ business }: BusinessCardProps) {
     >
       {/* Cover Image */}
       <div className="relative h-44 bg-muted overflow-hidden">
-        {business.coverImage ? (
+        {coverImage ? (
           <Image
-            src={business.coverImage}
+            src={coverImage}
             alt={business.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={priority}
+            loading={loading}
+            unoptimized={isJxlImage(coverImage)}
           />
         ) : (
           <div className="flex items-center justify-center h-full bg-gradient-to-br from-primary/10 to-primary/5">
@@ -49,6 +60,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
               fill
               className="object-cover"
               sizes="48px"
+              unoptimized={isJxlImage(business.logo)}
             />
           </div>
         )}

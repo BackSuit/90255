@@ -7,11 +7,11 @@ import { notFound } from "next/navigation";
 import {
   MapPin,
   Phone,
+  Mail,
   Globe,
   Clock,
   Navigation,
   Flag,
-  ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { BusinessGrid } from "@/components/business/business-grid";
 import { getBusinessBySlug, getRelatedBusinesses } from "@/actions/businesses";
 import { getCategoryBySlug } from "@/lib/categories";
+import { getBusinessCoverImage, isJxlImage } from "@/lib/category-images";
 import { formatPhoneNumber, getDirectionsUrl, absoluteUrl } from "@/lib/utils";
 import { CITY, STATE_SHORT, ZIP_CODE } from "@/lib/constants";
 
@@ -37,6 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     business.description ||
     `${business.name} — ${category?.name ?? "Business"} in ${CITY}, ${STATE_SHORT} ${ZIP_CODE}`;
+  const coverImage = getBusinessCoverImage(business);
 
   return {
     title,
@@ -45,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: absoluteUrl(`/businesses/${slug}`),
-      ...(business.coverImage ? { images: [business.coverImage] } : {}),
+      ...(coverImage ? { images: [coverImage] } : {}),
     },
     alternates: { canonical: absoluteUrl(`/businesses/${slug}`) },
   };
@@ -64,6 +66,7 @@ export default async function BusinessPage({ params }: Props) {
   const fullAddress = [business.address, business.city, business.state, business.zip]
     .filter(Boolean)
     .join(", ");
+  const coverImage = getBusinessCoverImage(business);
 
   // JSON-LD structured data
   const jsonLd = {
@@ -80,7 +83,7 @@ export default async function BusinessPage({ params }: Props) {
     },
     ...(business.phone ? { telephone: business.phone } : {}),
     ...(business.website ? { url: business.website } : {}),
-    ...(business.coverImage ? { image: business.coverImage } : {}),
+    ...(coverImage ? { image: coverImage } : {}),
     ...(business.latitude && business.longitude
       ? {
           geo: {
@@ -116,15 +119,17 @@ export default async function BusinessPage({ params }: Props) {
         />
 
         {/* Cover Image */}
-        {business.coverImage && (
+        {coverImage && (
           <div className="relative h-64 md:h-80 rounded-xl overflow-hidden mb-6">
             <Image
-              src={business.coverImage}
+              src={coverImage}
               alt={business.name}
               fill
               className="object-cover"
               priority
+              loading="eager"
               sizes="(max-width: 1200px) 100vw, 1200px"
+              unoptimized={isJxlImage(coverImage)}
             />
           </div>
         )}
@@ -141,6 +146,7 @@ export default async function BusinessPage({ params }: Props) {
                     fill
                     className="object-cover"
                     sizes="64px"
+                    unoptimized={isJxlImage(business.logo)}
                   />
                 </div>
               )}
@@ -198,6 +204,7 @@ export default async function BusinessPage({ params }: Props) {
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 50vw, 33vw"
+                        unoptimized={isJxlImage(url)}
                       />
                     </div>
                   ))}
@@ -250,6 +257,18 @@ export default async function BusinessPage({ params }: Props) {
                     className="text-sm text-primary hover:underline"
                   >
                     {formatPhoneNumber(business.phone)}
+                  </a>
+                </div>
+              )}
+
+              {business.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <a
+                    href={`mailto:${business.email}`}
+                    className="text-sm text-primary hover:underline truncate"
+                  >
+                    {business.email}
                   </a>
                 </div>
               )}

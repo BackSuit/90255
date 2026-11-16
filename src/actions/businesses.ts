@@ -35,6 +35,7 @@ export async function createBusiness(formData: FormData) {
   await db.insert(businesses).values({
     ...data,
     slug,
+    email: data.email || null,
     website: data.website || null,
     latitude: data.latitude?.toString() ?? null,
     longitude: data.longitude?.toString() ?? null,
@@ -66,6 +67,7 @@ export async function updateBusiness(id: string, formData: FormData) {
     .update(businesses)
     .set({
       ...data,
+      email: data.email || null,
       website: data.website || null,
       latitude: data.latitude?.toString() ?? null,
       longitude: data.longitude?.toString() ?? null,
