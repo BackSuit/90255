@@ -42,12 +42,53 @@ export async function createBusiness(formData: FormData) {
     coverImage: data.coverImage || null,
     logo: data.logo || null,
     gallery: galleryArray,
+    suggestedCategory: data.suggestedCategory || null,
     status: "pending",
     submittedBy: user.id,
   });
 
   revalidatePath("/businesses");
   redirect("/businesses?submitted=true");
+}
+
+export async function adminCreateBusiness(formData: FormData) {
+  const { user } = await requireAdmin();
+
+  const raw = Object.fromEntries(formData);
+  const parsed = businessUpdateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+
+  const data = parsed.data;
+  let slug = slugify(data.name);
+
+  const existing = await db.query.businesses.findFirst({
+    where: eq(businesses.slug, slug),
+  });
+  if (existing) {
+    slug = `${slug}-${Date.now().toString(36)}`;
+  }
+
+  const galleryArray = data.gallery ? data.gallery.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  await db.insert(businesses).values({
+    ...data,
+    slug,
+    email: data.email || null,
+    website: data.website || null,
+    latitude: data.latitude?.toString() ?? null,
+    longitude: data.longitude?.toString() ?? null,
+    coverImage: data.coverImage || null,
+    logo: data.logo || null,
+    gallery: galleryArray,
+    isFeatured: data.isFeatured ?? false,
+    submittedBy: user.id,
+  });
+
+  revalidatePath("/businesses");
+  revalidatePath("/admin/businesses");
+  redirect("/admin/businesses");
 }
 
 export async function updateBusiness(id: string, formData: FormData) {

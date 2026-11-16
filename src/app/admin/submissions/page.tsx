@@ -39,6 +39,11 @@ export default async function AdminSubmissionsPage() {
                       {biz.description}
                     </p>
                   )}
+                  {biz.category === "other" && biz.suggestedCategory && (
+                    <p className="text-sm text-amber-600 dark:text-amber-400 mb-2">
+                      Suggested category: <strong>{biz.suggestedCategory}</strong>
+                    </p>
+                  )}
                   <div className="text-xs text-muted-foreground space-y-0.5">
                     {biz.address && <div>📍 {biz.address}, {biz.city}, {biz.state} {biz.zip}</div>}
                     {biz.phone && <div>📞 {biz.phone}</div>}

@@ -26,6 +26,7 @@ export const businessSubmissionSchema = z.object({
   coverImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   logo: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   gallery: z.string().optional(), // We'll accept comma-separated URLs
+  suggestedCategory: z.string().max(200).optional(),
 });
 
 export const businessUpdateSchema = businessSubmissionSchema.extend({

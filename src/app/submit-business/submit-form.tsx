@@ -28,6 +28,7 @@ export function SubmitBusinessForm({ isAuthenticated }: { isAuthenticated: boole
   const [coverImage, setCoverImage] = useState("");
   const [logo, setLogo] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   // Show submitted success message
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
@@ -101,7 +102,7 @@ export function SubmitBusinessForm({ isAuthenticated }: { isAuthenticated: boole
 
           <div className="md:col-span-2">
             <Label htmlFor="category">Category *</Label>
-            <Select name="category" required>
+            <Select name="category" required onValueChange={(v: string | null) => setSelectedCategory(v ?? "")}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -114,6 +115,20 @@ export function SubmitBusinessForm({ isAuthenticated }: { isAuthenticated: boole
               </SelectContent>
             </Select>
           </div>
+
+          {selectedCategory === "other" && (
+            <div className="md:col-span-2">
+              <Label htmlFor="suggestedCategory">What category would you suggest?</Label>
+              <Input
+                id="suggestedCategory"
+                name="suggestedCategory"
+                placeholder="e.g. Pet Grooming, Tattoo Studio..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                This helps us add new categories to better serve local businesses.
+              </p>
+            </div>
+          )}
 
           <div className="md:col-span-2">
             <Label htmlFor="description">Description</Label>

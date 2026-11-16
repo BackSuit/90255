@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Car,
   MoreHorizontal,
+  HardHat,
   type LucideIcon,
 } from "lucide-react";
 
@@ -101,6 +102,12 @@ export const CATEGORIES: Category[] = [
     name: "Automotive",
     icon: Car,
     description: "Car dealers, auto parts, and automotive services in 90255",
+  },
+  {
+    slug: "local-services",
+    name: "Local Services",
+    icon: HardHat,
+    description: "Plumbers, cleaners, lawn care, handyman, and local service providers in 90255",
   },
   {
     slug: "other",

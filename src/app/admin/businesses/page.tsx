@@ -14,9 +14,14 @@ export default async function AdminBusinessesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">All Businesses</h1>
-        <span className="text-sm text-muted-foreground">
-          {businesses.length} total
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">
+            {businesses.length} total
+          </span>
+          <Button asChild>
+            <Link href="/admin/businesses/new">+ Add Business</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-xl border overflow-hidden">

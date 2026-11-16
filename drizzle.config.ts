@@ -1,10 +1,18 @@
 import { defineConfig } from "drizzle-kit";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
 
 export default defineConfig({
   schema: "./src/lib/db/schema.ts",
-  out: "./drizzle/migrations",
+  out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: 'postgresql://video_user:video_password@127.0.0.1:5432/90255',
+    url: process.env.DATABASE_URL,
   },
 });

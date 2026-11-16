@@ -36,6 +36,7 @@ export const businesses = pgTable("businesses", {
   slug: text("slug").notNull().unique(),
   description: text("description"),
   category: text("category").notNull(), // References static category slug
+  suggestedCategory: text("suggested_category"), // When category is "other", what the user suggested
   address: text("address"),
   city: text("city").notNull().default("Huntington Park"),
   state: text("state").notNull().default("CA"),
