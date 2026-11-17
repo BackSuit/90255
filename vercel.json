@@ -1,23 +1,13 @@
 {
-  "projectSettings": {
-    "sourceFilesOutsideRootDirectory": true
-  },
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "regions": ["pdx1"],
   "functions": {
     "src/**/*.ts": {
       "memory": 1024,
-      "maxDuration": 60,
-      "runtime": "nodejs20.x"
+      "maxDuration": 60
     }
   },
-  "env": [
-    "DATABASE_URL",
-    "AUTH_SECRET",
-    "BLOB_READ_WRITE_TOKEN",
-    "NEXT_PUBLIC_SITE_URL"
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
@@ -77,12 +67,6 @@
       "source": "/admin",
       "destination": "/admin/",
       "permanent": false
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
     }
   ]
 }
