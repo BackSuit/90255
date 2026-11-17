@@ -3,7 +3,7 @@
   "outputDirectory": ".next",
   "regions": ["pdx1"],
   "functions": {
-    "src/**/*.ts": {
+    "app/**/*.ts": {
       "memory": 1024,
       "maxDuration": 60
     }
